@@ -80,7 +80,10 @@ RUN wget -O /tmp/libssl1.0.0.deb http://security.ubuntu.com/ubuntu/pool/main/o/o
 WORKDIR /home/$NB_USER
 COPY --chown=$NB_UID:$NB_GID bashrc /etc/bash.bashrc
 RUN chown -R root:root /root && chmod o-w /tmp && chmod 644 /etc/bash.bashrc
-RUN mkdir -p /mnt/JUDAC && chown ${NB_UID}:${NB_GID} /mnt/JUDAC
+RUN mkdir -p /mnt/JUST_HOMEs_readonly && chown ${NB_UID}:${NB_GID} /mnt/JUST_HOMEs_readonly
+RUN mkdir -p /mnt/JUST_HOMEs && chown ${NB_UID}:${NB_GID} /mnt/JUST_HOMEs
+RUN mkdir -p /mnt/JUST_PROJECTs_readonly && chown ${NB_UID}:${NB_GID} /mnt/JUST_PROJECTs_readonly
+RUN mkdir -p /mnt/JUST_PROJECTs && chown ${NB_UID}:${NB_GID} /mnt/JUST_PROJECTs
 RUN mkdir -p /mnt/B2DROP && usermod -aG davfs2 jovyan && echo "https://b2drop.eudat.eu/remote.php/webdav /mnt/B2DROP davfs user,rw,noauto 0 0" >> /etc/fstab && chmod u+s /usr/sbin/mount.davfs && chown ${NB_UID}:${NB_GID} /mnt/B2DROP
 
-USER jovyan
+#USER jovyan
