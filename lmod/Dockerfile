@@ -1,33 +1,27 @@
 # Ubuntu 20.04 (focal)
 # https://hub.docker.com/_/ubuntu/?tab=tags&name=focal
 # OS/ARCH: linux/amd64
-ARG ROOT_CONTAINER=ubuntu:focal-20210119@sha256:3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e
+ARG ROOT_CONTAINER=ubuntu:focal-20220302
 
 ARG BASE_CONTAINER=$ROOT_CONTAINER
 FROM $BASE_CONTAINER
 
 LABEL maintainer="Jupyter-JSC <jupyter-jsc@fz-juelich.de>"
 ARG NB_USER="jovyan"
-ARG NB_UID="1094"
+ARG NB_UID="1000"
 ARG NB_GID="100"
 
 # Install global packages.
 USER root
 
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update \
- && apt-get install -yq --no-install-recommends \
-    wget \
-    ca-certificates \
-    sudo \
-    locales \
-    fonts-liberation \
-    run-one \
-    python3.8 python3.8-dev python3.8-distutils python3.8-venv \
- && apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY files/apt_packages.txt /tmp/apt_packages.txt
+RUN apt-get update && \
+    cat /tmp/apt_packages.txt | xargs apt install -yq && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy a script that we will use to correct permissions after running certain commands
-COPY fix-permissions /usr/local/bin/fix-permissions
+COPY files/fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
 
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
@@ -47,14 +41,6 @@ RUN mkdir -p /opt/apps/install
 RUN wget -O /opt/apps/install/lua-5.1.4.9.tar.bz2 https://sourceforge.net/projects/lmod/files/lua-5.1.4.9.tar.bz2/download
 RUN wget -O /opt/apps/install/lmod-8.4.tar.bz2 https://sourceforge.net/projects/lmod/files/Lmod-8.4.tar.bz2/download
 
-RUN apt-get update \
- && apt-get install -yq --no-install-recommends \
-    build-essential \
-    make \
-    rsync \
-    tcl-dev \
- && apt-get clean && rm -rf /var/lib/apt/lists/*
-
 # Install lua
 COPY --chown=root:root ./install_files/lua /opt/apps/install/lua
 RUN /bin/bash /opt/apps/install/lua/install_lua_5.1.4.9.sh
@@ -62,28 +48,12 @@ RUN /bin/bash /opt/apps/install/lua/install_lua_5.1.4.9.sh
 COPY --chown=root:root ./install_files/lmod /opt/apps/install/lmod
 RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.4.sh
 
-RUN apt-get update \
- && apt-get install -yq --no-install-recommends \
-    curl \
-    curlftpfs \
-    davfs2 \
-    fuse \
-    git \
-    less \
-    vim \
- && apt-get clean && rm -rf /var/lib/apt/lists/*
-
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && apt install -y gcc g++ nodejs
-RUN wget -O /tmp/libssl1.0.0.deb http://security.ubuntu.com/ubuntu/pool/main/o/openssl1.0/libssl1.0.0_1.0.2n-1ubuntu5.6_amd64.deb && apt install /tmp/libssl1.0.0.deb
-
+RUN wget -O /tmp/libssl1.0.0.deb http://security.ubuntu.com/ubuntu/pool/main/o/openssl1.0/libssl1.0.0_1.0.2n-1ubuntu5.7_amd64.deb && apt install /tmp/libssl1.0.0.deb
 
 WORKDIR /home/$NB_USER
-COPY --chown=$NB_UID:$NB_GID bashrc /etc/bash.bashrc
-RUN chown -R root:root /root && chmod o-w /tmp && chmod 644 /etc/bash.bashrc
-RUN mkdir -p /mnt/JUST_HOMEs_readonly && chown ${NB_UID}:${NB_GID} /mnt/JUST_HOMEs_readonly
-RUN mkdir -p /mnt/JUST_HOMEs && chown ${NB_UID}:${NB_GID} /mnt/JUST_HOMEs
-RUN mkdir -p /mnt/JUST_PROJECTs_readonly && chown ${NB_UID}:${NB_GID} /mnt/JUST_PROJECTs_readonly
-RUN mkdir -p /mnt/JUST_PROJECTs && chown ${NB_UID}:${NB_GID} /mnt/JUST_PROJECTs
-RUN mkdir -p /mnt/B2DROP && usermod -aG davfs2 jovyan && echo "https://b2drop.eudat.eu/remote.php/webdav /mnt/B2DROP davfs user,rw,noauto 0 0" >> /etc/fstab && chmod u+s /usr/sbin/mount.davfs && chown ${NB_UID}:${NB_GID} /mnt/B2DROP
+COPY files/bash.bashrc /etc/bash.bashrc
+COPY files/mnt.sh /tmp/mnt.sh
+RUN /bin/bash /tmp/mnt.sh && rm /tmp/mnt.sh
 
-#USER jovyan
+USER jovyan
