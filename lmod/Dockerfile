@@ -49,7 +49,7 @@ COPY --chown=root:root ./install_files/lmod /opt/apps/install/lmod
 RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.4.sh
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && apt install -y gcc g++ nodejs
-RUN wget -O /tmp/libssl1.0.0.deb http://security.ubuntu.com/ubuntu/pool/main/o/openssl1.0/libssl1.0.0_1.0.2n-1ubuntu5.7_amd64.deb && apt install /tmp/libssl1.0.0.deb
+RUN wget -O /tmp/libssl1.0.0.deb http://security.ubuntu.com/ubuntu/pool/main/o/openssl1.0/libssl1.0.0_1.0.2n-1ubuntu5.8_amd64.deb && apt install /tmp/libssl1.0.0.deb
 
 WORKDIR /home/$NB_USER
 COPY files/bash.bashrc /etc/bash.bashrc
