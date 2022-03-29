@@ -22,10 +22,11 @@ RUN apt update && \
     cat /tmp/requirements_apt.txt | xargs apt install -yq && \
     apt clean && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install -r /tmp/requirements_pip.txt && \
     chown -R ${USERNAME}:users ${HOME} && \
-    rm /tmp/requirements_pip.txt && \
+    python3 -m venv /home/${USERNAME}/venv && \
     rm /tmp/requirements_apt.txt
+
+RUN /home/${USERNAME}/venv/bin/pip3 install -r /tmp/requirements_pip.txt && rm /tmp/requirements_pip.txt
 
 RUN echo ${USERNAME}:$(uuidgen) | chpasswd
 
@@ -34,5 +35,7 @@ COPY entrypoint.sh ${HOME}/entrypoint.sh
 RUN chown -R ${USERNAME}:users ${HOME}
 
 USER jovyan
+
+WORKDIR ${HOME}
 
 ENTRYPOINT ["/home/jovyan/entrypoint.sh"]
