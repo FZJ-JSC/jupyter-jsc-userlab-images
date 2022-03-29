@@ -1,0 +1,12 @@
+bash
+ca-certificates
+curl
+python3
+python3-pip
+libc6
+libstdc++6
+rsync
+tar
+uuid-runtime
+vim
+wget
