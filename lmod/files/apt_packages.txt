@@ -6,6 +6,7 @@ davfs2
 fonts-liberation
 fuse
 git
+htop
 make
 less
 locales
