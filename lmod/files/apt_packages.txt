@@ -7,9 +7,11 @@ fonts-liberation
 fuse
 git
 htop
-make
 less
+libncurses5-dev
+libncursesw5-dev
 locales
+make
 python3.8
 python3.8-dev
 python3.8-distutils
