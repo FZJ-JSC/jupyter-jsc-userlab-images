@@ -12,6 +12,7 @@ libncurses5-dev
 libncursesw5-dev
 locales
 make
+netcat
 python3.8
 python3.8-dev
 python3.8-distutils
