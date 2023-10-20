@@ -8,6 +8,7 @@ fonts-liberation
 fuse
 git
 htop
+iperf
 less
 libncurses5-dev
 libncursesw5-dev
