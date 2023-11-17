@@ -46,7 +46,8 @@ RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.7.sh
 WORKDIR /home/$NB_USER
 COPY files/bash.bashrc /etc/bash.bashrc
 COPY files/mnt.sh /tmp/mnt.sh
+COPY files/load_modules.sh /tmp/custom/load_modules.sh
 RUN /bin/bash /tmp/mnt.sh && rm /tmp/mnt.sh
 
 USER jovyan
-ENTRYPOINT ["/bin/bash", "/tmp/custom/load_jupyter_version.sh", "&&", "/bin/bash", "/tmp/custom/load_jupyter_modules.sh"]
+ENTRYPOINT ["/bin/bash", "-l", "-c", "source /tmp/custom/load_modules.sh"]
