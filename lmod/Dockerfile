@@ -50,4 +50,4 @@ COPY files/load_modules.sh /tmp/custom/load_modules.sh
 RUN /bin/bash /tmp/mnt.sh && rm /tmp/mnt.sh
 
 USER jovyan
-ENTRYPOINT ["/bin/bash", "-l", "-c", "source /tmp/custom/load_modules.sh"]
+ENTRYPOINT ["/bin/bash", "-l", "-c", "source /tmp/custom/start_jupyter.sh"]
