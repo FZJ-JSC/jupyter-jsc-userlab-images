@@ -43,11 +43,10 @@ RUN /bin/bash /opt/apps/install/lua/install_lua_5.1.4.9.sh
 COPY --chown=root:root ./install_files/lmod /opt/apps/install/lmod
 RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.7.sh
 
-WORKDIR /home/$NB_USER
 COPY files/bash.bashrc /etc/bash.bashrc
 COPY files/mnt.sh /tmp/mnt.sh
-COPY files/load_modules.sh /tmp/custom/load_modules.sh
 RUN /bin/bash /tmp/mnt.sh && rm /tmp/mnt.sh
 
-USER jovyan
-ENTRYPOINT ["/bin/bash", "-l", "-c", "source /tmp/custom/start_jupyter.sh"]
+USER $NB_USER
+WORKDIR /home/$NB_USER
+ENTRYPOINT ["/bin/bash", "/tmp/custom/start_jupyter.sh"]
