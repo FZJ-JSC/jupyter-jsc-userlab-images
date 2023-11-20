@@ -45,6 +45,7 @@ RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.7.sh
 
 COPY files/bash.bashrc /etc/bash.bashrc
 COPY files/mnt.sh /tmp/mnt.sh
+COPY files/start_jupyter.sh /tmp/custom/start_jupyter.sh
 RUN /bin/bash /tmp/mnt.sh && rm /tmp/mnt.sh
 
 USER $NB_USER
