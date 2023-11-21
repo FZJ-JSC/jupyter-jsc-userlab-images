@@ -98,7 +98,7 @@ load_modules () {
 
 start () {
   echo "$(date) - Start jupyterhub-singleuser ..."
-  timeout 2min jupyterhub-singleuser # 2>${DIR}/stderr 1>${DIR}/stdout
+  timeout 2m jupyterhub-singleuser # 2>${DIR}/stderr 1>${DIR}/stdout
   echo "$(date) - Start jupyterhub-singleuser done" 
 }
 
