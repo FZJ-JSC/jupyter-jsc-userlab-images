@@ -106,6 +106,6 @@ start () {
 requirements
 set_env
 load_modules
-# mount_b2drop
-# mount_just
+mount_b2drop
+mount_just
 start
