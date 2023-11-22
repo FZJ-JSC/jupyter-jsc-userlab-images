@@ -1,6 +1,7 @@
 bzip2
 davfs2 
 fuse
+fuse-devel
 gcc
 glib2-devel
 libcurl-devel
