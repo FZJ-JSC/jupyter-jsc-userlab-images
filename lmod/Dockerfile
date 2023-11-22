@@ -14,7 +14,7 @@ COPY files/dnf_packages.txt /tmp/dnf_packages.txt
 RUN dnf -yq update && \
     dnf -yq install epel-release findutils && \
     cat /tmp/dnf_packages.txt | xargs dnf install -yq && \
-    dnf clean all
+    dnf clean all && rm /tmp/dnf_packages.txt
 # Download and install curlftpfs
 RUN mkdir -p /opt/apps/install
 COPY --chown=root:root ./install_files/curlftpfs /opt/apps/install/curlftpfs
