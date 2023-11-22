@@ -10,11 +10,17 @@ ARG NB_GID="100"
 # Install global packages.
 USER root
 
-RUN dnf -y update && \
-    # Needed for davfs2
-    dnf -y install epel-release && \
-    dnf -y install bzip2 davfs2 findutils gcc make procps rsync sudo tcl-devel wget && \
+COPY files/dnf_packages.txt /tmp/dnf_packages.txt
+RUN dnf -yq update && \
+    dnf -yq install epel-release findutils && \
+    cat /tmp/dnf_packages.txt | xargs dnf install -yq && \
     dnf clean all
+# Download and install curlftpfs
+RUN mkdir -p /opt/apps/install
+COPY --chown=root:root ./install_files/curlftpfs /opt/apps/install/curlftpfs
+RUN wget -O /opt/apps/install/curlftpfs-0.9.2.tar.gz https://sourceforge.net/projects/curlftpfs/files/curlftpfs/0.9.2/curlftpfs-0.9.2.tar.gz/download && \
+    /bin/bash /opt/apps/install/curlftpfs/install_curlftpfs_0.9.2.sh
+
 # Copy a script that we will use to correct permissions after running certain commands
 COPY files/fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
@@ -32,7 +38,7 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     fix-permissions $HOME
 
 # Download lua and lmod 
-RUN mkdir -p /opt/apps/install
+# RUN mkdir -p /opt/apps/install
 RUN wget -O /opt/apps/install/lua-5.1.4.9.tar.bz2 https://sourceforge.net/projects/lmod/files/lua-5.1.4.9.tar.bz2/download
 RUN wget -O /opt/apps/install/lmod-8.7.tar.bz2 https://sourceforge.net/projects/lmod/files/Lmod-8.7.tar.bz2/download
 
