@@ -10,7 +10,8 @@ set_env() {
   echo "$(date) - Set environment variables ..."
   export DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
   export LC_ALL=en_US.UTF-8
-  export JUPYTER_LOG_DIR=${DIR}
+  mkdir -p ${DIR}/logs
+  export JUPYTER_LOG_DIR=${DIR}/logs
   export JUPYTER_STDOUT=${JUPYTER_LOG_DIR}/stderr
   export PYTHONNOUSERSITE=1
   export MODULEPATH=/p/software/jsccloud/productionstages
@@ -45,7 +46,7 @@ mount_just () {
   if [[ $EC -eq 0 ]];then
     echo "/mnt/JUST_HOME is already mounted"
   else
-    CMD=$(python3 /tmp/input/bin/uftp.py)
+    CMD=$(python3 /tmp/custom/uftp.py)
     EC=$?
     if [[ $EC -eq 0 ]]; then
       $CMD /mnt/JUST_HOME 2>/dev/null
@@ -98,7 +99,7 @@ load_modules () {
 
 start () {
   echo "$(date) - Start jupyterhub-singleuser ..."
-  timeout 30d jupyterhub-singleuser 2>${DIR}/stderr 1>${DIR}/stdout
+  timeout 30d jupyterhub-singleuser 2>${JUPYTER_LOG_DIR}/stderr 1>${JUPYTER_LOG_DIR}/stdout
   echo "$(date) - Start jupyterhub-singleuser done" 
 }
 
