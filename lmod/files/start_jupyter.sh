@@ -97,6 +97,26 @@ load_modules () {
   echo "$(date) - Load modules done"
 }
 
+cleanup () {
+  echo "$(date) - Start cleanup."
+  mount | grep "/mnt/B2DROP" > /dev/null
+  EC=$?
+  if [[ $EC -eq 0 ]]; then
+    echo "$(date) - Unmounted /mnt/B2DROP."
+  else
+    echo "$(date) - B2DROP not mounted, do not unmount."
+  fi
+
+  mount | grep "/mnt/JUST_HOME" > /dev/null
+  EC=$?
+  if [[ $EC -eq 0 ]]; then
+    echo "$(date) - Unmounted /mnt/JUST_HOME."
+  else
+    echo "$(date) - JUST not mounted, do not unmount."
+  fi
+  echo "$(date) - Cleanup done."
+}
+
 start () {
   echo "$(date) - Start jupyterhub-singleuser ..."
   timeout 30d jupyterhub-singleuser 2>${JUPYTER_LOG_DIR}/stderr 1>${JUPYTER_LOG_DIR}/stdout
@@ -109,3 +129,4 @@ load_modules
 mount_b2drop
 mount_just
 start
+cleanup
