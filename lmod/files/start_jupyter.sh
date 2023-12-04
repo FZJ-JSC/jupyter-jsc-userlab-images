@@ -16,13 +16,6 @@ set_env() {
   export PYTHONNOUSERSITE=1
   export MODULEPATH=/p/software/jsccloud/productionstages
   export OTHERSTAGES=/p/software/jsccloud/productionstages
-  JUPYTER_FLAVOR_VARS=/tmp/custom/load_flavor_variables.sh
-  if [ -f $JUPYTER_FLAVOR_VARS ]; then
-    source $JUPYTER_FLAVOR_VARS
-  else
-    echo "File $JUPYTER_FLAVOR_VARS does not exist. Use 12h as default timeout."
-    export JUPYTERHUB_TIMEOUT=12h
-  fi
   echo "$(date) - Set environment variables done" 
 }
 
