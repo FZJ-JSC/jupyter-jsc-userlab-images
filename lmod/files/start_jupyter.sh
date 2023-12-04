@@ -121,12 +121,17 @@ cleanup () {
   else
     echo "$(date) - JUST not mounted, do not unmount."
   fi
+
+  # Send Cancel to JupyterHub, this way we can use restartPolicy: Always
+  # to "survive" VM reboots, but do not always restart properly stopped
+  # labs.
+  curl -X "POST" -d '{"failed": true, "progress": 100, "html_message": "<details><summary>Cleanup successful.</summary>Post stop hook ran successful</details>"}' ${JUPYTERHUB_EVENTS_URL}
   echo "$(date) - Cleanup done."
 }
 
 start () {
   echo "$(date) - Start jupyterhub-singleuser ..."
-  timeout $JUPYTERHUB_TIMEOUT jupyterhub-singleuser 2>${JUPYTER_LOG_DIR}/stderr 1>${JUPYTER_LOG_DIR}/stdout
+  timeout $JUPYTERHUB_TIMEOUT jupyterhub-singleuser 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
   echo "$(date) - Start jupyterhub-singleuser done" 
 }
 
