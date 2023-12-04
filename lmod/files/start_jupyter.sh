@@ -106,6 +106,11 @@ load_modules () {
 
 cleanup () {
   echo "$(date) - Start cleanup."
+  # Send Cancel to JupyterHub, this way we can use restartPolicy: Always
+  # to "survive" VM reboots, but do not always restart properly stopped
+  # labs.
+  curl -X "POST" -d '{"failed": true, "progress": 100, "html_message": "<details><summary>Cleanup successful.</summary>Post stop hook ran successful</details>"}' ${JUPYTERHUB_EVENTS_URL}
+
   mount | grep "/mnt/B2DROP" > /dev/null
   EC=$?
   if [[ $EC -eq 0 ]]; then
@@ -122,10 +127,6 @@ cleanup () {
     echo "$(date) - JUST not mounted, do not unmount."
   fi
 
-  # Send Cancel to JupyterHub, this way we can use restartPolicy: Always
-  # to "survive" VM reboots, but do not always restart properly stopped
-  # labs.
-  curl -X "POST" -d '{"failed": true, "progress": 100, "html_message": "<details><summary>Cleanup successful.</summary>Post stop hook ran successful</details>"}' ${JUPYTERHUB_EVENTS_URL}
   echo "$(date) - Cleanup done."
 }
 
