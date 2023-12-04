@@ -125,7 +125,7 @@ cleanup () {
 
 start () {
   echo "$(date) - Start jupyterhub-singleuser ..."
-  timeout $JUPYTERHUB_TIMEOUT jupyterhub-singleuser 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
+  jupyterhub-singleuser 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
   echo "$(date) - Start jupyterhub-singleuser done" 
 }
 
