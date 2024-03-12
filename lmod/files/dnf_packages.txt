@@ -6,6 +6,7 @@ gcc
 glib2-devel
 libcurl-devel
 make
+openssh
 procps
 rsync
 sudo
