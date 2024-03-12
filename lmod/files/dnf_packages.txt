@@ -11,4 +11,5 @@ procps
 rsync
 sudo
 tcl-devel
+vim
 wget
