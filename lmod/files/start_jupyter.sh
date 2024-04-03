@@ -127,9 +127,26 @@ cleanup () {
   echo "$(date) - Cleanup done."
 }
 
+update_config () {
+  if [[ -f ${EBROOTJUPYTERLAB}/etc/jupyter/jupyter_notebook_config.py ]]; then
+    echo "$(date) - Add system specific config ..."
+    echo "" >> ${DIR}/config.py
+    cat ${EBROOTJUPYTERLAB}/etc/jupyter/jupyter_notebook_config.py >> ${DIR}/config.py
+    for path in ${JUPYTER_EXTRA_LABEXTENSIONS_PATH//:/$'\n'}; do
+      echo "c.LabServerApp.extra_labextensions_path.append('$path')" >> ${JUPYTER_LOG_DIR}/config.py
+    done
+    echo "$(date) - Add system specific config done"
+  fi
+  if [[ -f ${EBROOTJUPYTERLAB}/bin/update_favorites_json ]]; then
+    # update favorite-dirs with $HOME,$PROJECT,$SCRATCH,
+    echo "$(date) - Update favorites"
+    ${EBROOTJUPYTERLAB}/bin/update_favorites_json
+  fi
+}
+
 start () {
   echo "$(date) - Start jupyterhub-singleuser ..."
-  jupyterhub-singleuser 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
+  jupyterhub-singleuser --config ${DIR}/config.py 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
   echo "$(date) - Start jupyterhub-singleuser done" 
 }
 
@@ -138,5 +155,6 @@ set_env
 load_modules
 mount_b2drop
 mount_just
+update_config
 start
 cleanup
