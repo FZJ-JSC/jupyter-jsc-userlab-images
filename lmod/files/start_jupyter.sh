@@ -16,6 +16,10 @@ set_env() {
   export PYTHONNOUSERSITE=1
   export MODULEPATH=/p/software/jsccloud/productionstages
   export OTHERSTAGES=/p/software/jsccloud/productionstages
+  API_URL_WITHOUT_PROTO=${JUPYTERHUB_API_URL##https\:\/\/}
+  export JUPYTERHUB_DOMAIN=${API_URL_WITHOUT_PROTO%%\/*}
+  export JUPYTER_SERVER_PUBLIC_URL="https://${JUPYTERHUB_DOMAIN}${JUPYTERHUB_SERVICE_PREFIX}"
+  export DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL=${JUPYTER_SERVER_PUBLIC_URL}
   echo "$(date) - Set environment variables done" 
 }
 
