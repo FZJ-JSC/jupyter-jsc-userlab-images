@@ -9,6 +9,7 @@ make
 openssh
 openssh-clients
 procps
+python3
 rsync
 sudo
 tcl-devel
