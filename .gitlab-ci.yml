@@ -1,8 +1,7 @@
 stages:
   - build
-  - build-lmod
 
-build:
+build-venv:
   stage: build
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -15,7 +14,7 @@ build:
     - if: $CI_COMMIT_TAG
 
 build-lmod:
-  stage: build-lmod
+  stage: build
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
