@@ -16,10 +16,6 @@ RUN dnf -yq update && \
     cat /tmp/dnf_packages.txt | xargs dnf install -yq && \
     dnf clean all && rm /tmp/dnf_packages.txt
 
-# Install python packages
-COPY files/pip_packages.txt /tmp/pip_packages.txt
-RUN pip3 install -r /tmp/pip_packages.txt
-
 # Download and install curlftpfs
 RUN mkdir -p /opt/apps/install
 COPY --chown=root:root ./install_files/curlftpfs /opt/apps/install/curlftpfs
