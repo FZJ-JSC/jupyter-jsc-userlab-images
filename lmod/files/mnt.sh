@@ -5,6 +5,14 @@ JUST_HOME_PATH=/mnt/JUST_HOME
 mkdir -p ${JUST_HOME_PATH}
 chown ${NB_UID}:${NB_GID} ${JUST_HOME_PATH}
 
+mkdir -p /p/data1
+chown ${NB_UID}:${NB_GID} /p/data1
+
+mkdir -p /p/project1
+chown ${NB_UID}:${NB_GID} /p/project1
+
+mkdir -p /p/home/jusers
+chown ${NB_UID}:${NB_GID} /p/home/jusers
 
 ## add B2DROP support
 B2DROP_PATH=/mnt/B2DROP

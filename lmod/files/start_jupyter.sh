@@ -77,6 +77,15 @@ mount_just () {
       echo "$(date) - Python script ended with exit code $EC"
     fi
   fi
+  if [[ -f /tmp/custom/mount_home_ro.sh ]]; then
+    /bin/bash /tmp/custom/mount_home_ro.sh 
+  fi
+  if [[ -f /tmp/custom/mount_project_ro.sh ]]; then
+    /bin/bash /tmp/custom/mount_project_ro.sh 
+  fi
+  if [[ -f /tmp/custom/mount_data_ro.sh ]]; then
+    /bin/bash /tmp/custom/mount_data_ro.sh 
+  fi
   echo "$(date) - Mount JUST done"
 }
 
