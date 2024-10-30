@@ -137,6 +137,14 @@ cleanup () {
 }
 
 update_config () {
+  if [[ -f ${DIR}/config.py ]]; then
+    sed -i -e "s|_servername_|${JUPYTERHUB_SERVER_NAME}|g" ${DIR}/config.py
+  else
+    # Otherwise the CMD in Dockerfile would not work correctly
+    # If other values are required, one can add a default config.py, this is
+    # just the fallback solution
+    echo "c.ServerApp.root_dir = \"/\"" >> ${DIR}/config.py
+  fi
   if [[ -f ${EBROOTJUPYTERLAB}/etc/jupyter/jupyter_notebook_config.py ]]; then
     echo "$(date) - Add system specific config ..."
     echo "" >> ${DIR}/config.py
@@ -155,7 +163,7 @@ update_config () {
 
 start () {
   echo "$(date) - Start jupyterhub-singleuser ..."
-  jupyterhub-singleuser --config ${DIR}/config.py 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
+  jupyterhub-singleuser --config ${DIR}/config.py ${@} 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
   echo "$(date) - Start jupyterhub-singleuser done" 
 }
 

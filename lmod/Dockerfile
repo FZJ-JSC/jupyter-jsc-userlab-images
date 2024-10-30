@@ -1,4 +1,5 @@
-ARG ROOT_CONTAINER=rockylinux:8.8.20230518
+ARG ROOT_CONTAINER=rockylinux/rockylinux:9.4.20240523-ubi
+# ARG ROOT_CONTAINER=rockylinux:8.8.20230518
 ARG BASE_CONTAINER=$ROOT_CONTAINER
 FROM $BASE_CONTAINER
 
@@ -58,3 +59,4 @@ RUN /bin/bash /tmp/mnt.sh && rm /tmp/mnt.sh && fix-permissions /tmp/custom
 USER $NB_USER
 WORKDIR /home/$NB_USER
 ENTRYPOINT ["/bin/bash", "/tmp/custom/start_jupyter.sh"]
+CMD ["--ServerApp.default_url=/lab/tree/home/jovyan"]
