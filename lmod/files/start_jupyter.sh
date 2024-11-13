@@ -158,6 +158,11 @@ update_config () {
     done
     echo "$(date) - Add system specific config done"
   fi
+  if [[ -f /home/jovyan/.jupyter/config.py ]]; then
+    ## Add your own stuff to the config
+    echo "" >> /tmp/config.py
+    cat /home/jovyan/.jupyter/config.py >> /tmp/config.py
+  fi
   if [[ -f ${EBROOTJUPYTERLAB}/bin/update_favorites_json ]]; then
     # update favorite-dirs with $HOME,$PROJECT,$SCRATCH,
     echo "$(date) - Update favorites"
