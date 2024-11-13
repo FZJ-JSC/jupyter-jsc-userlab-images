@@ -162,7 +162,7 @@ update_config () {
 }
 
 start () {
-  echo "$(date) - Start jupyterhub-singleuser ..."
+  echo "$(date) - Start jupyterhub-singleuser with args ${@} ..."
   jupyterhub-singleuser --config ${DIR}/config.py ${@} 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
   echo "$(date) - Start jupyterhub-singleuser done" 
 }
