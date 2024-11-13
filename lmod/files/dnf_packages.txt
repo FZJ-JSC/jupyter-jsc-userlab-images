@@ -2,6 +2,7 @@ openssl-devel
 bzip2-devel
 libffi-devel
 bzip2
+compat-openssl11
 fuse
 gcc
 glib2-devel
@@ -13,6 +14,7 @@ net-tools
 openssh
 openssh-clients
 procps
+rust
 sudo
 tcl-devel
 vim
