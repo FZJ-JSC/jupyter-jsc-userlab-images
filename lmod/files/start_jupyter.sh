@@ -140,11 +140,13 @@ update_config () {
   # We have to copy the config.py file, because it's mounted as read-only
   if [[ -f ${DIR}/config.py ]]; then
     cp ${DIR}/config.py /tmp/config.py
+    chmod +w /tmp/config.py
     sed -i -e "s|_servername_|${JUPYTERHUB_SERVER_NAME}|g" /tmp/config.py
   else
     # Otherwise the CMD in Dockerfile would not work correctly
     # If other values are required, one can add a default config.py, this is
     # just the fallback solution
+    chmod +w /tmp/config.py
     echo "c.ServerApp.root_dir = \"/\"" >> /tmp/config.py
   fi
   if [[ -f ${EBROOTJUPYTERLAB}/etc/jupyter/jupyter_notebook_config.py ]]; then
