@@ -1,11 +1,15 @@
+openssl-devel
+bzip2-devel
+libffi-devel
 bzip2
-davfs2 
 fuse
-fuse-devel
 gcc
 glib2-devel
+htop
 libcurl-devel
 make
+neon
+net-tools
 openssh
 openssh-clients
 procps
