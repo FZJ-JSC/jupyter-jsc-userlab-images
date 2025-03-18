@@ -24,8 +24,8 @@ RUN wget -O /opt/apps/install/curlftpfs-0.9.2.tar.gz https://sourceforge.net/pro
     /bin/bash /opt/apps/install/curlftpfs/install_curlftpfs_0.9.2.sh
 
 # Download and install davfs2
-RUN wget -O /tmp/davfs2-1.7.0-7.el9.x86_64.rpm https://www.rpmfind.net/linux/epel/testing/9/Everything/x86_64/Packages/d/davfs2-1.7.0-7.el9.x86_64.rpm && \
-    rpm -ivh /tmp/davfs2-1.7.0-7.el9.x86_64.rpm
+COPY --chown=root:root ./install_files/davfs2-1.7.0-7.el9.x86_64.rpm /tmp/davfs2-1.7.0-7.el9.x86_64.rpm
+RUN rpm -ivh /tmp/davfs2-1.7.0-7.el9.x86_64.rpm
 
 # Download and install Node.js 20.x
 RUN wget -O /tmp/nodejs.sh https://rpm.nodesource.com/setup_20.x && bash /tmp/nodejs.sh && dnf install nodejs -y
