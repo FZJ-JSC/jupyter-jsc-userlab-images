@@ -14,6 +14,7 @@ set_env() {
   export JUPYTER_LOG_DIR=${DIR}/logs
   export JUPYTER_STDOUT=${JUPYTER_LOG_DIR}/stderr
   export PYTHONNOUSERSITE=1
+  export JUPYTERJSC_USER_CMD="jupyterhub-singleuser"
   export MODULEPATH=/p/software/jsccloud/productionstages
   export OTHERSTAGES=/p/software/jsccloud/productionstages
   API_URL_WITHOUT_PROTO=${JUPYTERHUB_API_URL##https\:\/\/}
@@ -171,9 +172,9 @@ update_config () {
 }
 
 start () {
-  echo "$(date) - Start jupyterhub-singleuser with args ${@} ..."
-  jupyterhub-singleuser --config /tmp/config.py ${@} 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
-  echo "$(date) - Start jupyterhub-singleuser done" 
+  echo "$(date) - Start ${JUPYTERJSC_USER_CMD} with args ${@} ..."
+  ${JUPYTERJSC_USER_CMD} --config /tmp/config.py ${@} 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
+  echo "$(date) - Start ${JUPYTERJSC_USER_CMD} done" 
 }
 
 requirements
