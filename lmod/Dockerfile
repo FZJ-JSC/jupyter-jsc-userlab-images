@@ -59,11 +59,11 @@ COPY --chown=root:root ./install_files/lmod /opt/apps/install/lmod
 RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.7.sh
 
 COPY files/bash.bashrc /etc/bash.bashrc
-COPY files/mnt.sh /tmp/mnt.sh
-COPY files/start_jupyter.sh /tmp/custom/start_jupyter.sh
-RUN /bin/bash /tmp/mnt.sh && rm /tmp/mnt.sh && fix-permissions /tmp/custom
+COPY files/start-singleuser.sh /tmp/custom/start-singleuser.sh
+RUN fix-permissions /tmp/custom
+RUN chmod +x /tmp/custom/start-singleuser.sh
+ENV PATH="/tmp/custom:${PATH}"
 
 USER $NB_USER
 WORKDIR /home/$NB_USER
-ENTRYPOINT ["/bin/bash", "/tmp/custom/start_jupyter.sh"]
-CMD ["--ServerApp.default_url=/lab/tree/home/jovyan"]
+ENTRYPOINT ["start-singleuser.sh"]

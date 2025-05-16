@@ -20,6 +20,7 @@ set_env() {
   API_URL_WITHOUT_PROTO=${JUPYTERHUB_API_URL##https\:\/\/}
   export JUPYTERHUB_DOMAIN=${API_URL_WITHOUT_PROTO%%\/*}
   export JUPYTER_SERVER_PUBLIC_URL="https://${JUPYTERHUB_DOMAIN}${JUPYTERHUB_SERVICE_PREFIX}"
+  export JUPYTER_CONFIG_PATH="${JUPYTER_CONFIG_PATH:+$JUPYTER_CONFIG_PATH:}/tmp/jupyter_config"
   export DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL=${JUPYTER_SERVER_PUBLIC_URL}
   echo "$(date) - Set environment variables done" 
 }
@@ -139,30 +140,31 @@ cleanup () {
 
 update_config () {
   # We have to copy the config.py file, because it's mounted as read-only
+  mkdir -p /tmp/jupyter_config
   if [[ -f ${DIR}/config.py ]]; then
-    cp ${DIR}/config.py /tmp/config.py
-    chmod +w /tmp/config.py
-    sed -i -e "s|_servername_|${JUPYTERHUB_SERVER_NAME}|g" /tmp/config.py
+    cp ${DIR}/config.py /tmp/jupyter_config/jupyter_notebook_config.py
+    chmod +w /tmp/jupyter_config/jupyter_notebook_config.py
+    sed -i -e "s|_servername_|${JUPYTERHUB_SERVER_NAME}|g" /tmp/jupyter_config/jupyter_notebook_config.py
   else
     # Otherwise the CMD in Dockerfile would not work correctly
     # If other values are required, one can add a default config.py, this is
     # just the fallback solution
-    chmod +w /tmp/config.py
-    echo "c.ServerApp.root_dir = \"/\"" >> /tmp/config.py
+    chmod +w /tmp/jupyter_config/jupyter_notebook_config.py
+    echo "c.ServerApp.root_dir = \"/\"" >> /tmp/jupyter_config/jupyter_notebook_config.py
   fi
   if [[ -f ${EBROOTJUPYTERLAB}/etc/jupyter/jupyter_notebook_config.py ]]; then
     echo "$(date) - Add system specific config ..."
-    echo "" >> /tmp/config.py
-    cat ${EBROOTJUPYTERLAB}/etc/jupyter/jupyter_notebook_config.py >> /tmp/config.py
+    echo "" >> /tmp/jupyter_config/jupyter_notebook_config.py
+    cat ${EBROOTJUPYTERLAB}/etc/jupyter/jupyter_notebook_config.py >> /tmp/jupyter_config/jupyter_notebook_config.py
     for path in ${JUPYTER_EXTRA_LABEXTENSIONS_PATH//:/$'\n'}; do
-      echo "c.LabServerApp.extra_labextensions_path.append('$path')" >> /tmp/config.py
+      echo "c.LabServerApp.extra_labextensions_path.append('$path')" >> /tmp/jupyter_config/jupyter_notebook_config.py
     done
     echo "$(date) - Add system specific config done"
   fi
   if [[ -f /home/jovyan/.jupyter/config.py ]]; then
     ## Add your own stuff to the config
-    echo "" >> /tmp/config.py
-    cat /home/jovyan/.jupyter/config.py >> /tmp/config.py
+    echo "" >> /tmp/jupyter_config/jupyter_notebook_config.py
+    cat /home/jovyan/.jupyter/config.py >> /tmp/jupyter_config/jupyter_notebook_config.py
   fi
   if [[ -f ${EBROOTJUPYTERLAB}/bin/update_favorites_json ]]; then
     # update favorite-dirs with $HOME,$PROJECT,$SCRATCH,
@@ -173,7 +175,7 @@ update_config () {
 
 start () {
   echo "$(date) - Start ${JUPYTERJSC_USER_CMD} with args ${@} ..."
-  ${JUPYTERJSC_USER_CMD} --config /tmp/config.py ${@} 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
+  ${JUPYTERJSC_USER_CMD} ${@} 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
   echo "$(date) - Start ${JUPYTERJSC_USER_CMD} done" 
 }
 
