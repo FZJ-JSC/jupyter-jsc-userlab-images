@@ -64,4 +64,4 @@ ENV PATH="/tmp/custom:${PATH}"
 
 USER $NB_USER
 WORKDIR /home/$NB_USER
-ENTRYPOINT ["start-singleuser.sh"]
+CMD ["start-singleuser.sh"]

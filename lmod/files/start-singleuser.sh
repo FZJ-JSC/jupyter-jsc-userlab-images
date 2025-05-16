@@ -25,72 +25,6 @@ set_env() {
   echo "$(date) - Set environment variables done" 
 }
 
-mount_b2drop () {
-  echo "$(date) - Mount B2DROP ..."
-  mount | grep "/mnt/B2DROP" > /dev/null
-  EC=$?
-  if [[ $EC -eq 0 ]]; then
-    echo "$(date) - /mnt/B2DROP is already mounted."
-  else
-    if [[ -f /home/jovyan/.davfs2/secrets ]]; then
-      cat /home/jovyan/.davfs2/secrets | grep "https://b2drop.eudat.eu/remote.php/webdav" &> /dev/null
-      EC=$?
-      if [[ $EC -eq 0 ]]; then
-        mount /mnt/B2DROP
-      else
-        echo "$(date) - Secret is not stored. Do not auto mount B2DROP."
-      fi
-    fi
-  fi
-  echo "$(date) - Mount B2DROP done"
-}
-
-mount_just () {
-  echo "$(date) - Mount JUST ..."
-  mount | grep "/mnt/JUST_HOME" > /dev/null
-  EC=$?
-  if [[ $EC -eq 0 ]];then
-    echo "/mnt/JUST_HOME is already mounted"
-  else
-    CMD=$(python3 /tmp/custom/uftp.py)
-    EC=$?
-    if [[ $EC -eq 0 ]]; then
-      $CMD /mnt/JUST_HOME 2>/dev/null
-      EC=$?
-      if [[ $EC -eq 0 ]]; then
-        if [[ -L /home/jovyan/JUST_HOMEs_readonly && -d /home/jovyan/JUST_HOMEs_readonly ]]; then
-          :
-        else
-          if [[ -L /home/jovyan/JUST_HOMEs_readonly ]]; then
-            unlink /home/jovyan/JUST_HOMEs_readonly
-          fi
-          ln -s /mnt/JUST_HOME /home/jovyan/JUST_HOMEs_readonly
-          EC=$?
-          if [[ $EC -eq 0 ]]; then
-            echo "$(date) - JUST mounted to /home/jovyan/JUST_HOMEs_readonly"
-          else
-            echo "$(date) - JUST mounted to /mnt/JUST_HOME"
-          fi
-        fi
-      else
-        echo "$(date) - JUST mount failed."
-      fi
-    else
-      echo "$(date) - Python script ended with exit code $EC"
-    fi
-  fi
-  if [[ -f /tmp/custom/mount_home_ro.sh ]]; then
-    /bin/bash /tmp/custom/mount_home_ro.sh 
-  fi
-  if [[ -f /tmp/custom/mount_project_ro.sh ]]; then
-    /bin/bash /tmp/custom/mount_project_ro.sh 
-  fi
-  if [[ -f /tmp/custom/mount_data_ro.sh ]]; then
-    /bin/bash /tmp/custom/mount_data_ro.sh 
-  fi
-  echo "$(date) - Mount JUST done"
-}
-
 load_modules () {
   echo "$(date) - Load modules ..."
 
@@ -182,8 +116,6 @@ start () {
 requirements
 set_env
 load_modules
-mount_b2drop
-mount_just
 update_config
 start
 cleanup
