@@ -1,7 +1,7 @@
 #!/bin/bash
-cd /opt/apps/install
+cd /opt/apps/install/curlftpfs
 tar xf curlftpfs-0.9.2.tar.gz
-cd /opt/apps/install/curlftpfs-0.9.2
+cd /opt/apps/install/curlftpfs/curlftpfs-0.9.2
 ./configure --prefix /opt/apps/curlftpfs --build=x86_64-unknown-linux-gnu
 make
 make install
