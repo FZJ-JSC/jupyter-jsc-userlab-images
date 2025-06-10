@@ -60,6 +60,9 @@ COPY ./files/start-singleuser.sh /usr/local/bin/start-singleuser.sh
 RUN fix-permissions /usr/local/bin
 RUN chmod +x /usr/local/bin/start-singleuser.sh
 
+RUN mkdir -p /p/home
+RUN chown -R jovyan:users /p/home
+
 USER $NB_USER
 WORKDIR /home/$NB_USER
 CMD ["start-singleuser.sh"]

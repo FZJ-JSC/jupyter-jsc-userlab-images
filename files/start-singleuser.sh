@@ -137,7 +137,7 @@ start () {
 requirements
 set_env
 load_modules
-mount_just
+mount_just_homes
 update_config
 start
 cleanup
