@@ -10,7 +10,7 @@ ARG NB_GID="100"
 # Install global packages.
 USER root
 
-COPY files/dnf_packages.txt /tmp/dnf_packages.txt
+COPY ./files/dnf_packages.txt /tmp/dnf_packages.txt
 RUN dnf -yq update && \
     dnf -yq install epel-release findutils && \
     cat /tmp/dnf_packages.txt | xargs dnf install -yq && \
@@ -29,7 +29,7 @@ RUN rpm -ivh /tmp/davfs2-1.7.0-7.el9.x86_64.rpm && rm /tmp/davfs2-1.7.0-7.el9.x8
 RUN wget -O /tmp/nodejs.sh https://rpm.nodesource.com/setup_20.x && bash /tmp/nodejs.sh && dnf install nodejs -y && rm /tmp/nodejs.sh
 
 # Copy a script that we will use to correct permissions after running certain commands
-COPY files/fix-permissions /usr/local/bin/fix-permissions
+COPY ./files/fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
 
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
@@ -55,8 +55,8 @@ RUN /bin/bash /opt/apps/install/lua/install_lua_5.1.4.9.sh
 COPY --chown=root:root ./install_files/lmod /opt/apps/install/lmod
 RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.7.sh
 
-COPY files/bash.bashrc /etc/bash.bashrc
-COPY files/start-singleuser.sh /usr/local/bin/start-singleuser.sh
+COPY ./files/bash.bashrc /etc/bash.bashrc
+COPY ./files/start-singleuser.sh /usr/local/bin/start-singleuser.sh
 RUN fix-permissions /usr/local/bin
 RUN chmod +x /usr/local/bin/start-singleuser.sh
 
