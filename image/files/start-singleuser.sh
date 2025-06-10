@@ -20,8 +20,15 @@ set_env() {
   API_URL_WITHOUT_PROTO=${JUPYTERHUB_API_URL##https\:\/\/}
   export JUPYTERHUB_DOMAIN=${API_URL_WITHOUT_PROTO%%\/*}
   export JUPYTER_SERVER_PUBLIC_URL="https://${JUPYTERHUB_DOMAIN}${JUPYTERHUB_SERVICE_PREFIX}"
-  export JUPYTER_CONFIG_PATH="${JUPYTER_CONFIG_PATH:+$JUPYTER_CONFIG_PATH:}/tmp/jupyter_config"
+  export JUPYTER_CONFIG_PATH="${JUPYTER_CONFIG_PATH:+$JUPYTER_CONFIG_PATH:}/tmp/jupyter_config:/mnt/datamount_start"
   export DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL=${JUPYTER_SERVER_PUBLIC_URL}
+ 
+  # Get current access token + preferred username
+  response=$(curl -s -X "GET" -H "Authorization: token ${JUPYTERHUB_API_TOKEN}" -H "Accept: application/json" "${JUPYTERHUB_API_URL}/user_oauth")
+
+  access_token=$(echo "$response" | jq -r '.auth_state.access_token')
+  preferred_username=$(echo "$response" | jq -r '.auth_state.preferred_username')
+
   echo "$(date) - Set environment variables done" 
 }
 
@@ -46,60 +53,74 @@ load_modules () {
   echo "$(date) - Load modules done"
 }
 
+mount_just_homes () {
+  if [[ -n $preferred_username && -n $access_token ]]; then
+    echo "$(date) - Mount HPC Home directories for ${preferred_username} ..."
+    mkdir -p /p/home/jusers/${preferred_username}
+
+    curl -X POST http://localhost:8090/ \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -d "$(jq -n --arg user "$preferred_username" --arg token "$access_token" '{
+      path: "just_homes",
+      options: {
+        displayName: "JUST ($HOME)",
+        template: "uftp",
+        external: true,
+        readonly: false,
+        config: {
+          remotepath: "/p/home/jusers/\($preferred_username)",
+          type: "uftp",
+          auth_url: "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC",
+          custompath: "",
+          access_token: $token
+        }
+      }
+    }')"
+
+    src_dir="/home/jovyan/data_mounts/just_homes"
+    dest_dir="/p/home/jusers/$preferred_username"
+
+    mkdir -p "$dest_dir"
+
+    for sub in "$src_dir"/*; do
+      [ -d "$sub" ] || continue  # skip non-directories
+      ln -sfn "$sub" "$dest_dir/$(basename "$sub")"
+    done
+
+    ln -s /home/jovyan /p/home/jusers/${preferred_username}/jsccloud
+    export HOME="/p/home/jusers/${preferred_username}/jsccloud"
+    echo "$(date) - Mount HPC Home directories for ${preferred_username} ... done"
+  fi
+}
+
+
 cleanup () {
   echo "$(date) - Start cleanup."
   # Send Cancel to JupyterHub, this way we can use restartPolicy: Always
   # to "survive" VM reboots, but do not always restart properly stopped
   # labs.
   curl -X "POST" -d '{"failed": true, "progress": 100, "html_message": "<details><summary>Cleanup successful.</summary>Post stop hook ran successful</details>"}' ${JUPYTERHUB_EVENTS_URL}
-
-  mount | grep "/mnt/B2DROP" > /dev/null
-  EC=$?
-  if [[ $EC -eq 0 ]]; then
-    echo "$(date) - Unmounted /mnt/B2DROP."
-  else
-    echo "$(date) - B2DROP not mounted, do not unmount."
-  fi
-
-  mount | grep "/mnt/JUST_HOME" > /dev/null
-  EC=$?
-  if [[ $EC -eq 0 ]]; then
-    echo "$(date) - Unmounted /mnt/JUST_HOME."
-  else
-    echo "$(date) - JUST not mounted, do not unmount."
-  fi
-
   echo "$(date) - Cleanup done."
 }
 
 update_config () {
-  # We have to copy the config.py file, because it's mounted as read-only
-  mkdir -p /tmp/jupyter_config
-  if [[ -f ${DIR}/config.py ]]; then
-    cp ${DIR}/config.py /tmp/jupyter_config/jupyter_notebook_config.py
-    chmod +w /tmp/jupyter_config/jupyter_notebook_config.py
-    sed -i -e "s|_servername_|${JUPYTERHUB_SERVER_NAME}|g" /tmp/jupyter_config/jupyter_notebook_config.py
-  else
-    # Otherwise the CMD in Dockerfile would not work correctly
-    # If other values are required, one can add a default config.py, this is
-    # just the fallback solution
-    chmod +w /tmp/jupyter_config/jupyter_notebook_config.py
-    echo "c.ServerApp.root_dir = \"/\"" >> /tmp/jupyter_config/jupyter_notebook_config.py
-  fi
   if [[ -f ${EBROOTJUPYTERLAB}/etc/jupyter/jupyter_notebook_config.py ]]; then
     echo "$(date) - Add system specific config ..."
-    echo "" >> /tmp/jupyter_config/jupyter_notebook_config.py
     cat ${EBROOTJUPYTERLAB}/etc/jupyter/jupyter_notebook_config.py >> /tmp/jupyter_config/jupyter_notebook_config.py
     for path in ${JUPYTER_EXTRA_LABEXTENSIONS_PATH//:/$'\n'}; do
       echo "c.LabServerApp.extra_labextensions_path.append('$path')" >> /tmp/jupyter_config/jupyter_notebook_config.py
     done
     echo "$(date) - Add system specific config done"
   fi
-  if [[ -f /home/jovyan/.jupyter/config.py ]]; then
-    ## Add your own stuff to the config
-    echo "" >> /tmp/jupyter_config/jupyter_notebook_config.py
-    cat /home/jovyan/.jupyter/config.py >> /tmp/jupyter_config/jupyter_notebook_config.py
+  
+  echo "c.ServerApp.root_dir = '/'" >> /usr/local/etc/jupyter/jupyter_server_config.py
+  if [[ -n $preferred_username && -n $access_token ]]; then
+    echo "c.ServerApp.default_url = '/lab/tree/p/home/jusers/${preferred_username}/jsccloud'" >> /usr/local/etc/jupyter/jupyter_server_config.py
+  else
+    echo "c.ServerApp.default_url = '/lab/tree/p/home/jovyan'" >> /usr/local/etc/jupyter/jupyter_server_config.py
   fi
+
   if [[ -f ${EBROOTJUPYTERLAB}/bin/update_favorites_json ]]; then
     # update favorite-dirs with $HOME,$PROJECT,$SCRATCH,
     echo "$(date) - Update favorites"
@@ -116,6 +137,7 @@ start () {
 requirements
 set_env
 load_modules
+mount_just
 update_config
 start
 cleanup

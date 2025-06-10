@@ -1,9 +1,8 @@
-ARG ROOT_CONTAINER=rockylinux/rockylinux:9.4.20240523-ubi
-# ARG ROOT_CONTAINER=rockylinux:8.8.20230518
+ARG ROOT_CONTAINER=rockylinux/rockylinux:9.5.20241118-ubi
 ARG BASE_CONTAINER=$ROOT_CONTAINER
 FROM $BASE_CONTAINER
 
-LABEL maintainer="Jupyter-JSC <jupyter-jsc@fz-juelich.de>"
+LABEL maintainer="Jupyter-JSC <ds-support@fz-juelich.de>"
 ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
@@ -24,10 +23,10 @@ RUN /bin/bash /opt/apps/install/curlftpfs/install_curlftpfs_0.9.2.sh
 
 # Download and install davfs2
 COPY --chown=root:root ./install_files/davfs2-1.7.0-7.el9.x86_64.rpm /tmp/davfs2-1.7.0-7.el9.x86_64.rpm
-RUN rpm -ivh /tmp/davfs2-1.7.0-7.el9.x86_64.rpm
+RUN rpm -ivh /tmp/davfs2-1.7.0-7.el9.x86_64.rpm && rm /tmp/davfs2-1.7.0-7.el9.x86_64.rpm
 
 # Download and install Node.js 20.x
-RUN wget -O /tmp/nodejs.sh https://rpm.nodesource.com/setup_20.x && bash /tmp/nodejs.sh && dnf install nodejs -y
+RUN wget -O /tmp/nodejs.sh https://rpm.nodesource.com/setup_20.x && bash /tmp/nodejs.sh && dnf install nodejs -y && rm /tmp/nodejs.sh
 
 # Copy a script that we will use to correct permissions after running certain commands
 COPY files/fix-permissions /usr/local/bin/fix-permissions
@@ -57,10 +56,9 @@ COPY --chown=root:root ./install_files/lmod /opt/apps/install/lmod
 RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.7.sh
 
 COPY files/bash.bashrc /etc/bash.bashrc
-COPY files/start-singleuser.sh /tmp/custom/start-singleuser.sh
-RUN fix-permissions /tmp/custom
-RUN chmod +x /tmp/custom/start-singleuser.sh
-ENV PATH="/tmp/custom:${PATH}"
+COPY files/start-singleuser.sh /usr/local/bin/start-singleuser.sh
+RUN fix-permissions /usr/local/bin
+RUN chmod +x /usr/local/bin/start-singleuser.sh
 
 USER $NB_USER
 WORKDIR /home/$NB_USER
