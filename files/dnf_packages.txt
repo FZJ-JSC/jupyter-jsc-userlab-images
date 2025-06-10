@@ -6,7 +6,7 @@ compat-openssl11
 file
 fuse
 fuse-libs
-https://dl.rockylinux.org/pub/rocky/9/CRB/x86_64/os/Packages/f/fuse-devel-2.9.9-16.el9.x86_64.rpm
+https://dl.rockylinux.org/pub/rocky/9/CRB/x86_64/os/Packages/f/fuse-devel-2.9.9-17.el9.x86_64.rpm
 fzf
 gcc
 git
