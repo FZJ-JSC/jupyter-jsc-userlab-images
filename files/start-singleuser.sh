@@ -58,25 +58,7 @@ mount_just_homes () {
     echo "$(date) - Mount HPC Home directories for ${preferred_username} ..."
     mkdir -p /p/home/jusers/${preferred_username}
 
-    curl -X POST http://localhost:8090/ \
-    -H "Accept: application/json" \
-    -H "Content-Type: application/json" \
-    -d "$(jq -n --arg user "$preferred_username" --arg token "$access_token" '{
-      path: "just_homes",
-      options: {
-        displayName: "JUST ($HOME)",
-        template: "uftp",
-        external: true,
-        readonly: false,
-        config: {
-          remotepath: "/p/home/jusers/\($preferred_username)",
-          type: "uftp",
-          auth_url: "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC",
-          custompath: "",
-          access_token: $token
-        }
-      }
-    }')"
+    curl -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_homes", "options": {"displayName": "JUST ($HOME)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/home/jusers/'"${preferred_username}"'", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'
 
     src_dir="/home/jovyan/data_mounts/just_homes"
     dest_dir="/p/home/jusers/$preferred_username"
@@ -121,11 +103,11 @@ update_config () {
     echo "c.ServerApp.default_url = '/lab/tree/p/home/jovyan'" >> /usr/local/etc/jupyter/jupyter_server_config.py
   fi
 
-  if [[ -f ${EBROOTJUPYTERLAB}/bin/update_favorites_json ]]; then
-    # update favorite-dirs with $HOME,$PROJECT,$SCRATCH,
-    echo "$(date) - Update favorites"
-    ${EBROOTJUPYTERLAB}/bin/update_favorites_json
-  fi
+  # update favorite-dirs with $HOME,$PROJECT,$SCRATCH,
+  echo "$(date) - Update favorites ..."
+  ${EBROOTJUPYTERLAB}/bin/update_favorites_json
+  echo "$(date) - Update favorites done"
+  
 }
 
 start () {
