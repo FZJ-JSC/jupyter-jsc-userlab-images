@@ -64,7 +64,7 @@ RUN chmod +x /usr/local/bin/start-singleuser.sh
 RUN chmod +x /usr/local/bin/update_favorites_json
 
 RUN mkdir -p /p/home
-RUN chown -R jovyan:users /p/home
+RUN chown -R jovyan:users /p
 
 USER $NB_USER
 WORKDIR /home/$NB_USER

@@ -89,6 +89,7 @@ sys_fav_jsonstr = """{
     "favorites": ["""
 sys_fav_jsonstr = fav_jsonstr("HOME", sys_fav_jsonstr) + ","
 sys_fav_jsonstr = fav_jsonstr("PROJECT", sys_fav_jsonstr) + ","
+sys_fav_jsonstr = fav_jsonstr("DATA", sys_fav_jsonstr) + ","
 sys_fav_jsonstr = fav_jsonstr("SCRATCH", sys_fav_jsonstr)
 sys_fav_jsonstr += """
     ],

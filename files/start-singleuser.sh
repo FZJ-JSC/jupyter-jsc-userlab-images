@@ -53,7 +53,7 @@ load_modules () {
   echo "$(date) - Load modules done"
 }
 
-mount_just_homes () {
+mount_just_home () {
   if [[ -n $preferred_username && -n $access_token ]]; then
     echo "$(date) - Mount HPC Home directories for ${preferred_username} ..."
     mkdir -p /p/home/jusers/${preferred_username}
@@ -71,11 +71,40 @@ mount_just_homes () {
     done
 
     ln -s /home/jovyan /p/home/jusers/${preferred_username}/jsccloud
-    export HOME="/p/home/jusers/${preferred_username}/jsccloud"
-    echo "$(date) - Mount HPC Home directories for ${preferred_username} ... done"
+    export HOME="/p/home/jusers/${preferred_username}"
+    echo "$(date) - Mount HPC Home directories for ${preferred_username} done"
   fi
 }
 
+mount_just_project () {
+  if [[ -n $preferred_username && -n $access_token ]]; then
+    echo "$(date) - Mount HPC Project directories for ${preferred_username} ..."
+    curl -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_project1", "options": {"displayName": "JUST ($PROJECT)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/project1", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'    
+    ln -s /home/jovyan/data_mounts/just_project1 /p/project1
+    export PROJECT="/p/project1"
+    echo "$(date) - Mount HPC Project directories for ${preferred_username} done"
+  fi
+}
+
+mount_just_data () {
+  if [[ -n $preferred_username && -n $access_token ]]; then
+    echo "$(date) - Mount HPC Data directories for ${preferred_username} ..."
+    curl -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_data1", "options": {"displayName": "JUST ($DATA)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/data1", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'    
+    ln -s /home/jovyan/data_mounts/just_data1 /p/data1
+    export DATA="/p/data1"
+    echo "$(date) - Mount HPC Data directories for ${preferred_username} done"
+  fi
+}
+
+mount_just_scratch () {
+  if [[ -n $preferred_username && -n $access_token ]]; then
+    echo "$(date) - Mount HPC Scratch directories for ${preferred_username} ..."
+    curl -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_scratch", "options": {"displayName": "JUST ($DATA)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/scratch", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'    
+    ln -s /home/jovyan/data_mounts/just_scratch /p/scratch
+    export SCRATCH="/p/scratch"
+    echo "$(date) - Mount HPC Scratch directories for ${preferred_username} done"
+  fi
+}
 
 cleanup () {
   echo "$(date) - Start cleanup."
@@ -105,7 +134,7 @@ update_config () {
 
   # update favorite-dirs with $HOME,$PROJECT,$SCRATCH,
   echo "$(date) - Update favorites ..."
-  ${EBROOTJUPYTERLAB}/bin/update_favorites_json
+  /usr/local/bin/update_favorites_json
   echo "$(date) - Update favorites done"
   
 }
@@ -119,7 +148,10 @@ start () {
 requirements
 set_env
 load_modules
-mount_just_homes
+mount_just_home
+mount_just_project
+mount_just_data
+mount_just_scratch
 update_config
 start
 cleanup
