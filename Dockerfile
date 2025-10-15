@@ -46,7 +46,7 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
 
 # RUN mkdir -p /opt/apps/install
 COPY --chown=root:root ./install_files/lua-5.1.4.9.tar.bz2 /opt/apps/install/lua-5.1.4.9.tar.bz2
-COPY --chown=root:root ./install_files/lmod-8.7.tar.bz2 /opt/apps/install/lmod-8.7.tar.bz2
+COPY --chown=root:root ./install_files/Lmod-8.7.67.tar.gz /opt/apps/install/Lmod-8.7.67.tar.gz
 
 # Install lua
 COPY --chown=root:root ./install_files/lua /opt/apps/install/lua
