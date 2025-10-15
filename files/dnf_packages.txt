@@ -1,6 +1,7 @@
 openssl-devel
 bzip2-devel
 libffi-devel
+bc
 bzip2
 compat-openssl11
 file
