@@ -69,6 +69,6 @@ RUN chmod +x /usr/local/bin/update_favorites_json
 RUN mkdir -p /p/home && mkdir -p /p/project1 && mkdir -p /p/scratch
 RUN chown -R jovyan:users /p
 
-# USER $NB_USER
-# WORKDIR /home/$NB_USER
+USER $NB_USER
+WORKDIR /home/$NB_USER
 CMD ["start-singleuser.sh"]
