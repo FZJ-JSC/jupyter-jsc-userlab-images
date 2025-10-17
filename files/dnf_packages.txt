@@ -27,6 +27,7 @@ net-tools
 openssh
 openssh-clients
 procps
+readline-devel
 rsync
 rust
 sudo

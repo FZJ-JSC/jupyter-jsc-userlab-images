@@ -45,12 +45,12 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     fix-permissions $HOME
 
 # RUN mkdir -p /opt/apps/install
-COPY --chown=root:root ./install_files/lua-5.1.4.9.tar.bz2 /opt/apps/install/lua-5.1.4.9.tar.bz2
+COPY --chown=root:root ./install_files/lua-5.3.6.tar.gz /opt/apps/install/lua-5.3.6.tar.gz
 COPY --chown=root:root ./install_files/Lmod-8.7.67.tar.gz /opt/apps/install/Lmod-8.7.67.tar.gz
 
 # Install lua
 COPY --chown=root:root ./install_files/lua /opt/apps/install/lua
-RUN /bin/bash /opt/apps/install/lua/install_lua_5.1.4.9.sh
+RUN /bin/bash /opt/apps/install/lua/install_lua_5.3.6.sh
 # Install lmod
 COPY --chown=root:root ./install_files/lmod /opt/apps/install/lmod
 RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.7.sh
