@@ -46,11 +46,18 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
 
 # RUN mkdir -p /opt/apps/install
 COPY --chown=root:root ./install_files/lua-5.3.6.tar.gz /opt/apps/install/lua-5.3.6.tar.gz
+COPY --chown=root:root ./install_files/luarocks-3.12.2.tar.gz /opt/apps/install/luarocks-3.12.2.tar.gz
 COPY --chown=root:root ./install_files/Lmod-8.7.67.tar.gz /opt/apps/install/Lmod-8.7.67.tar.gz
 
 # Install lua
 COPY --chown=root:root ./install_files/lua /opt/apps/install/lua
 RUN /bin/bash /opt/apps/install/lua/install_lua_5.3.6.sh
+# Install luarocks
+ENV LUAROCKS_PREFIX=/usr/local
+ENV LUA_PATH="$LUAROCKS_PREFIX/share/lua/5.3/?.lua;$LUAROCKS_PREFIX/share/lua/5.3/?/init.lua;;"
+ENV LUA_CPATH="$LUAROCKS_PREFIX/lib/lua/5.3/?.so;;"
+COPY --chown=root:root ./install_files/luarocks /opt/apps/install/luarocks
+RUN /bin/bash /opt/apps/install/luarocks/install_luarocks_3.12.2.sh
 # Install lmod
 COPY --chown=root:root ./install_files/lmod /opt/apps/install/lmod
 RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.7.sh
