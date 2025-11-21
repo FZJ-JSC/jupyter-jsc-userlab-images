@@ -57,25 +57,27 @@ load_modules () {
 }
 
 mount_just_home () {
-  if [[ -n $preferred_username && -n $access_token ]]; then
-    echo "$(date) - Mount HPC Home directories for ${preferred_username} ..."
-    mkdir -p /p/home/jusers/${preferred_username}
+  if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging* ]]; then
+    if [[ -n $preferred_username && -n $access_token ]]; then
+      echo "$(date) - Mount HPC Home directories for ${preferred_username} ..."
+      mkdir -p /p/home/jusers/${preferred_username}
 
-    curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_homes", "options": {"displayName": "JUST ($HOME)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/home/jusers/'"${preferred_username}"'", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'
+      curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_homes", "options": {"displayName": "JUST ($HOME)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/home/jusers/'"${preferred_username}"'", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'
 
-    src_dir="/home/jovyan/data_mounts/just_homes"
-    dest_dir="/p/home/jusers/$preferred_username"
+      src_dir="/home/jovyan/data_mounts/just_homes"
+      dest_dir="/p/home/jusers/$preferred_username"
 
-    mkdir -p "$dest_dir"
+      mkdir -p "$dest_dir"
 
-    for sub in "$src_dir"/*; do
-      [ -d "$sub" ] || continue  # skip non-directories
-      ln -sfn "$sub" "$dest_dir/$(basename "$sub")"
-    done
+      for sub in "$src_dir"/*; do
+        [ -d "$sub" ] || continue  # skip non-directories
+        ln -sfn "$sub" "$dest_dir/$(basename "$sub")"
+      done
 
-    ln -s /home/jovyan /p/home/jusers/${preferred_username}/jsccloud
-    export HOME="/p/home/jusers/${preferred_username}/jsccloud"
-    echo "$(date) - Mount HPC Home directories for ${preferred_username} done"
+      ln -s /home/jovyan /p/home/jusers/${preferred_username}/jsccloud
+      export HOME="/p/home/jusers/${preferred_username}/jsccloud"
+      echo "$(date) - Mount HPC Home directories for ${preferred_username} done"
+    fi
   fi
 }
 
