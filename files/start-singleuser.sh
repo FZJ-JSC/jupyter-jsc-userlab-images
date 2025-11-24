@@ -57,7 +57,7 @@ load_modules () {
 }
 
 mount_just_home () {
-  if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging* ]]; then
+  if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging.jsc* ]]; then
     if [[ -n $preferred_username && -n $access_token ]]; then
       echo "$(date) - Mount HPC Home directories for ${preferred_username} ..."
       mkdir -p /p/home/jusers/${preferred_username}
@@ -82,30 +82,34 @@ mount_just_home () {
 }
 
 mount_just_project_dirs () {
-  if [[ -n $preferred_username && -n $access_token ]]; then
-    echo "$(date) - Mount HPC Project directories for ${preferred_username} ..."
-    options=$(python3 /usr/local/bin/get_mount_projects.py https://login.jsc.fz-juelich.de/oauth2/userinfo $access_token)
+  if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging.jsc* ]]; then
+    if [[ -n $preferred_username && -n $access_token ]]; then
+      echo "$(date) - Mount HPC Project directories for ${preferred_username} ..."
+      options=$(python3 /usr/local/bin/get_mount_projects.py https://login.jsc.fz-juelich.de/oauth2/userinfo $access_token)
 
-    IFS=',' read -ra opts <<< "$options"
-    for opt in "${opts[@]}"; do
-        curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_project1_'"${opt}"'", "options": {"displayName": "JUST ($PROJECT '"${opt}"')", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/project1/'"${opt}"'", "type": "uftp", "group": "'"${opt}"'", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'
-        ln -sfn /home/jovyan/data_mounts/just_project1_$opt /p/project1/$opt
-        curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_scratch_'"${opt}"'", "options": {"displayName": "JUST ($SCRATCH '"${opt}"')", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/scratch/'"${opt}"'", "type": "uftp", "group": "'"${opt}"'", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'
-        ln -sfn /home/jovyan/data_mounts/just_scratch_$opt /p/scratch/$opt
-    done        
-    export PROJECT="/p/project1"
-    export SCRATCH="/p/scratch"
-    echo "$(date) - Mount HPC Project directories for ${preferred_username} done"
+      IFS=',' read -ra opts <<< "$options"
+      for opt in "${opts[@]}"; do
+          curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_project1_'"${opt}"'", "options": {"displayName": "JUST ($PROJECT '"${opt}"')", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/project1/'"${opt}"'", "type": "uftp", "group": "'"${opt}"'", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'
+          ln -sfn /home/jovyan/data_mounts/just_project1_$opt /p/project1/$opt
+          curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_scratch_'"${opt}"'", "options": {"displayName": "JUST ($SCRATCH '"${opt}"')", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/scratch/'"${opt}"'", "type": "uftp", "group": "'"${opt}"'", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'
+          ln -sfn /home/jovyan/data_mounts/just_scratch_$opt /p/scratch/$opt
+      done        
+      export PROJECT="/p/project1"
+      export SCRATCH="/p/scratch"
+      echo "$(date) - Mount HPC Project directories for ${preferred_username} done"
+    fi
   fi
 }
 
 mount_just_data () {
-  if [[ -n $preferred_username && -n $access_token ]]; then
-    echo "$(date) - Mount HPC Data directories for ${preferred_username} ..."
-    curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_data1", "options": {"displayName": "JUST ($DATA)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/data1", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'    
-    ln -sfn /home/jovyan/data_mounts/just_data1 /p/data1
-    export DATA="/p/data1"
-    echo "$(date) - Mount HPC Data directories for ${preferred_username} done"
+  if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging.jsc* ]]; then
+    if [[ -n $preferred_username && -n $access_token ]]; then
+      echo "$(date) - Mount HPC Data directories for ${preferred_username} ..."
+      curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_data1", "options": {"displayName": "JUST ($DATA)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/data1", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'    
+      ln -sfn /home/jovyan/data_mounts/just_data1 /p/data1
+      export DATA="/p/data1"
+      echo "$(date) - Mount HPC Data directories for ${preferred_username} done"
+    fi
   fi
 }
 
