@@ -22,6 +22,8 @@ set_env() {
   export JUPYTER_SERVER_PUBLIC_URL="https://${JUPYTERHUB_DOMAIN}${JUPYTERHUB_SERVICE_PREFIX}"
   export JUPYTER_CONFIG_PATH="${JUPYTER_CONFIG_PATH:+$JUPYTER_CONFIG_PATH:}/mnt/datamount_start"
   export DWAVE_INSPECTOR_JUPYTER_SERVER_PROXY_EXTERNAL_URL=${JUPYTER_SERVER_PUBLIC_URL}
+  export CURL_ARGS="--silent --write-out %{http_code} --output /dev/null --no-keepalive --connect-timeout 5 --retry 3"
+  export CURL_HEADERS="-H \"Authorization: token ${JUPYTERHUB_API_TOKEN}\" -H \"Content-Type: application/json\" -H \"Accept: application/json\""
  
   # Get current access token + preferred username
   response=$(curl -s -X "GET" -H "Authorization: token ${JUPYTERHUB_API_TOKEN}" -H "Accept: application/json" "${JUPYTERHUB_API_URL}/user_oauth")
@@ -35,8 +37,30 @@ set_env() {
   echo "$(date) - Set environment variables done" 
 }
 
+send_event () {
+  BODY=${1//\'/}
+  CURL_CMD="curl ${CURL_ARGS} ${CURL_HEADERS} -d '${BODY}' -X \"POST\" ${JUPYTERHUB_EVENTS_URL}"
+  eval " $CURL_CMD"
+}
+
+send_spawn_update () {
+  PROGRESS=$1
+  SUMMARY=$2
+  DETAILS=$3
+  BODY="{\"progress\": ${PROGRESS}, \"failed\": false, \"html_message\": \"<details><summary>${SUMMARY}</summary>${DETAILS}</details>\"}"
+  HTTPCODE=$(send_event "$BODY")
+  if [[ ${HTTPCODE} -lt 200 || ${HTTPCODE} -gt 299 ]]; then
+    echo "$(date) - Could not send status update (${HTTPCODE} - ${PROGRESS}%: ${SUMMARY} - ${DETAILS}). Cancel start."
+    exit 1
+  else
+    echo "$(date) - Spawn update (${PROGRESS}%) successful: ${HTTPCODE}"
+  fi
+}
+
+
 load_modules () {
   echo "$(date) - Load modules ..."
+  send_spawn_update 90 "Load modules ..." "This may take a few seconds."
 
   JUPYTER_VERSION_MODULES_FILE=/tmp/custom/load_jupyter_version.sh
   JUPYTER_USER_MODULES_FILE=/tmp/custom/load_jupyter_modules.sh
@@ -52,13 +76,14 @@ load_modules () {
   else
     echo "File $JUPYTER_USER_MODULES_FILE does not exist. Not loading user specified modules."
   fi
-
+  send_spawn_update 91 "Load modules done" "Modules loaded successfully."
   echo "$(date) - Load modules done"
 }
 
 mount_just_home () {
   if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging.jsc* ]]; then
     if [[ -n $preferred_username && -n $access_token ]]; then
+      send_spawn_update 92 "Mount HPC Home directories ..." "Mounting HPC Home directories for ${preferred_username}."
       echo "$(date) - Mount HPC Home directories for ${preferred_username} ..."
       mkdir -p /p/home/jusers/${preferred_username}
 
@@ -85,6 +110,7 @@ mount_just_project_dirs () {
   if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging.jsc* ]]; then
     if [[ -n $preferred_username && -n $access_token ]]; then
       echo "$(date) - Mount HPC Project directories for ${preferred_username} ..."
+      send_spawn_update 93 "Mount HPC Project directories ..." "Mounting HPC Project directories for ${preferred_username}."
       options=$(python3 /usr/local/bin/get_mount_projects.py https://login.jsc.fz-juelich.de/oauth2/userinfo $access_token)
 
       IFS=',' read -ra opts <<< "$options"
@@ -105,6 +131,7 @@ mount_just_data () {
   if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging.jsc* ]]; then
     if [[ -n $preferred_username && -n $access_token ]]; then
       echo "$(date) - Mount HPC Data directories for ${preferred_username} ..."
+      send_spawn_update 94 "Mount HPC Data directories ..." "Mounting HPC Data directories for ${preferred_username}."
       curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_data1", "options": {"displayName": "JUST ($DATA)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/data1", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'    
       ln -sfn /home/jovyan/data_mounts/just_data1 /p/data1
       export DATA="/p/data1"
@@ -149,6 +176,7 @@ update_config () {
 
 start () {
   echo "$(date) - Start ${JUPYTERJSC_USER_CMD} with args ${@} ..."
+  send_spawn_update 95 "Start JupyterLab" "You will be redirected, when your JupyterLab is ready. This may take a few seconds."
   ${JUPYTERJSC_USER_CMD} ${@} 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
   echo "$(date) - Start ${JUPYTERJSC_USER_CMD} done" 
 }
