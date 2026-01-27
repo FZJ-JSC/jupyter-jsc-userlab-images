@@ -184,9 +184,9 @@ start () {
 requirements
 set_env
 load_modules
-mount_just_home
-mount_just_project_dirs
-mount_just_data
+# mount_just_home
+# mount_just_project_dirs
+# mount_just_data
 update_config
 start
 cleanup
