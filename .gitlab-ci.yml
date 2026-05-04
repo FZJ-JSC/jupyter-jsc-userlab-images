@@ -33,6 +33,5 @@ build-commit:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > ~/.docker/config.json
     - buildkitd &
     - sleep 5
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
     - buildctl build --frontend dockerfile.v0 --local context=${CI_PROJECT_DIR} --output type=image,name=${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA},push=true
   when: manual
