@@ -1,4 +1,4 @@
-ARG ROOT_CONTAINER=rockylinux/rockylinux:9.5.20241118-ubi
+ARG ROOT_CONTAINER=rockylinux/rockylinux:9.7-ubi
 ARG BASE_CONTAINER=$ROOT_CONTAINER
 FROM $BASE_CONTAINER
 
@@ -71,8 +71,6 @@ RUN chmod 666 /usr/local/etc/jupyter/jupyter_server_config.py
 RUN fix-permissions /usr/local/bin
 RUN chmod +x /usr/local/bin/start-singleuser.sh
 RUN chmod +x /usr/local/bin/update_favorites_json
-
-RUN chown -R jovyan:users /p
 
 USER $NB_USER
 WORKDIR /home/$NB_USER
