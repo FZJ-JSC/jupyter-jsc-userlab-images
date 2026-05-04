@@ -57,6 +57,18 @@ send_spawn_update () {
   fi
 }
 
+send_spawn_update_fail () {
+  SUMMARY=$1
+  DETAILS=$2
+  BODY="{\"progress\": 100, \"failed\": true, \"html_message\": \"<details><summary>${SUMMARY}</summary>${DETAILS}</details>\"}"
+  HTTPCODE=$(send_event "$BODY")
+  if [[ ${HTTPCODE} -lt 200 || ${HTTPCODE} -gt 299 ]]; then
+    echo "$(date) - Could not send status update (${HTTPCODE} - ${PROGRESS}%: ${SUMMARY} - ${DETAILS}). Cancel start."
+    exit 1
+  else
+    echo "$(date) - Spawn update (${PROGRESS}%) successful: ${HTTPCODE}"
+  fi
+}
 
 load_modules () {
   echo "$(date) - Load modules ..."
@@ -78,66 +90,6 @@ load_modules () {
   fi
   send_spawn_update 91 "Load modules done" "Modules loaded successfully."
   echo "$(date) - Load modules done"
-}
-
-mount_just_home () {
-  if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging.jsc* ]]; then
-    if [[ -n $preferred_username && -n $access_token ]]; then
-      send_spawn_update 92 "Mount HPC Home directories ..." "Mounting HPC Home directories for ${preferred_username}."
-      echo "$(date) - Mount HPC Home directories for ${preferred_username} ..."
-      mkdir -p /p/home/jusers/${preferred_username}
-
-      curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_homes", "options": {"displayName": "JUST ($HOME)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/home/jusers/'"${preferred_username}"'", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'
-
-      src_dir="/home/jovyan/data_mounts/just_homes"
-      dest_dir="/p/home/jusers/$preferred_username"
-
-      mkdir -p "$dest_dir"
-
-      for sub in "$src_dir"/*; do
-        [ -d "$sub" ] || continue  # skip non-directories
-        ln -sfn "$sub" "$dest_dir/$(basename "$sub")"
-      done
-
-      ln -s /home/jovyan /p/home/jusers/${preferred_username}/jsccloud
-      export HOME="/p/home/jusers/${preferred_username}/jsccloud"
-      echo "$(date) - Mount HPC Home directories for ${preferred_username} done"
-    fi
-  fi
-}
-
-mount_just_project_dirs () {
-  if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging.jsc* ]]; then
-    if [[ -n $preferred_username && -n $access_token ]]; then
-      echo "$(date) - Mount HPC Project directories for ${preferred_username} ..."
-      send_spawn_update 93 "Mount HPC Project directories ..." "Mounting HPC Project directories for ${preferred_username}."
-      options=$(python3 /usr/local/bin/get_mount_projects.py https://login.jsc.fz-juelich.de/oauth2/userinfo $access_token)
-
-      IFS=',' read -ra opts <<< "$options"
-      for opt in "${opts[@]}"; do
-          curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_project1_'"${opt}"'", "options": {"displayName": "JUST ($PROJECT '"${opt}"')", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/project1/'"${opt}"'", "type": "uftp", "group": "'"${opt}"'", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'
-          ln -sfn /home/jovyan/data_mounts/just_project1_$opt /p/project1/$opt
-          curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_scratch_'"${opt}"'", "options": {"displayName": "JUST ($SCRATCH '"${opt}"')", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/scratch/'"${opt}"'", "type": "uftp", "group": "'"${opt}"'", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'
-          ln -sfn /home/jovyan/data_mounts/just_scratch_$opt /p/scratch/$opt
-      done        
-      export PROJECT="/p/project1"
-      export SCRATCH="/p/scratch"
-      echo "$(date) - Mount HPC Project directories for ${preferred_username} done"
-    fi
-  fi
-}
-
-mount_just_data () {
-  if [[ "$JUPYTERHUB_API_URL" == https://jupyter.jsc* || "$JUPYTERHUB_API_URL" == https://jupyter-staging.jsc* ]]; then
-    if [[ -n $preferred_username && -n $access_token ]]; then
-      echo "$(date) - Mount HPC Data directories for ${preferred_username} ..."
-      send_spawn_update 94 "Mount HPC Data directories ..." "Mounting HPC Data directories for ${preferred_username}."
-      curl -sS -X POST http://localhost:8090/ -H "Accept: application/json" -H "Content-Type: application/json" -d '{"path": "just_data1", "options": {"displayName": "JUST ($DATA)", "template": "uftp", "external": "true", "readonly": "false", "config": { "remotepath": "/p/data1", "type": "uftp", "auth_url": "https://uftp.fz-juelich.de/UFTP_Auth/rest/auth/JUDAC", "custompath": "", "access_token": "'"${access_token}"'"}}}'    
-      ln -sfn /home/jovyan/data_mounts/just_data1 /p/data1
-      export DATA="/p/data1"
-      echo "$(date) - Mount HPC Data directories for ${preferred_username} done"
-    fi
-  fi
 }
 
 cleanup () {
@@ -170,23 +122,25 @@ update_config () {
   # update favorite-dirs with $HOME,$PROJECT,$SCRATCH,
   echo "$(date) - Update favorites ..."
   /usr/local/bin/update_favorites_json
-  echo "$(date) - Update favorites done"
-  
+  echo "$(date) - Update favorites done" 
 }
 
 start () {
-  echo "$(date) - Start ${JUPYTERJSC_USER_CMD} with args ${@} ..."
-  send_spawn_update 95 "Start JupyterLab" "You will be redirected, when your JupyterLab is ready. This may take a few seconds."
-  ${JUPYTERJSC_USER_CMD} ${@} 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
-  echo "$(date) - Start ${JUPYTERJSC_USER_CMD} done" 
+  if command -v ${JUPYTERJSC_USER_CMD} >/dev/null 2>&1; then
+      echo "$(date) - Start ${JUPYTERJSC_USER_CMD} with args ${@} ..."
+      send_spawn_update 95 "Start JupyterLab" "You will be redirected, when your JupyterLab is ready. This may take a few seconds. Logs are stored at ${JUPYTER_LOG_DIR}/stdout"
+      ${JUPYTERJSC_USER_CMD} ${@} 2>&1 | tee ${JUPYTER_LOG_DIR}/stdout
+      cleanup
+      echo "$(date) - Start ${JUPYTERJSC_USER_CMD} done" 
+  else
+      echo "$(date) - ${JUPYTERJSC_USER_CMD} not available."
+      send_spawn_update 95 "Could not start JupyterLab" "Could not find ${JUPYTERJSC_USER_CMD} executable."
+      exit 1
+  fi
 }
 
 requirements
 set_env
 load_modules
-# mount_just_home
-# mount_just_project_dirs
-# mount_just_data
 update_config
 start
-cleanup

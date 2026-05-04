@@ -64,7 +64,6 @@ RUN /bin/bash /opt/apps/install/lmod/install_lmod_8.7.sh
 
 COPY ./files/bash.bashrc /etc/bash.bashrc
 COPY ./files/start-singleuser.sh /usr/local/bin/start-singleuser.sh
-COPY ./files/get_mount_projects.py /usr/local/bin/get_mount_projects.py
 COPY ./files/update_favorites_json /usr/local/bin/update_favorites_json
 RUN mkdir -p /usr/local/etc/jupyter/ 
 COPY --chown=root:root ./files/jupyter_server_config.py /usr/local/etc/jupyter/jupyter_server_config.py
@@ -73,7 +72,6 @@ RUN fix-permissions /usr/local/bin
 RUN chmod +x /usr/local/bin/start-singleuser.sh
 RUN chmod +x /usr/local/bin/update_favorites_json
 
-RUN mkdir -p /p/home && mkdir -p /p/project1 && mkdir -p /p/scratch
 RUN chown -R jovyan:users /p
 
 USER $NB_USER
